@@ -1,0 +1,13 @@
+{
+  "name": "@cm/config",
+  "version": "1.0.0",
+  "description": "Configuration packages for monorepo",
+  "main": "index.js",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./eslint": "./eslint.base.js",
+    "./prettier": "./prettier.config.js",
+    "./tsconfig": "./tsconfig.base.json"
+  }
+}
