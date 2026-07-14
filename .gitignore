@@ -1,0 +1,68 @@
+# ---- Dependencies ----
+node_modules/
+.pnpm-store/
+
+# ---- Build outputs ----
+dist/
+build/
+out/
+lib/
+coverage/
+
+# ---- TypeScript ----
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# ---- Turborepo ----
+.turbo/
+
+# ---- Expo / React Native ----
+# (apps/mobile tiene su propio .gitignore, esto cubre el resto)
+.expo/
+web-build/
+expo-env.d.ts
+.metro-health-check*
+
+# ---- Env / secrets ----
+.env
+.env.*
+!.env.example
+!.env.sample
+*.local
+
+# ---- Logs ----
+logs/
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+pnpm-debug.*
+
+# ---- Testing / caches ----
+.eslintcache
+.cache/
+
+# ---- Editor / IDE ----
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+*.swo
+
+# ---- OS ----
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# ---- Docker ----
+# imágenes/volúmenes locales no se versionan, pero deja los Dockerfile/compose
+docker/**/data/
+
+# ---- Temp ----
+tmp/
+temp/
+*.tmp
