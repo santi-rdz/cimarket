@@ -77,6 +77,7 @@ model Category {
   deletedAt DateTime? @map("deleted_at")
   
   subcategories Subcategory[]
+  @@unique([name])
   @@map("categories")
 }
 
@@ -92,6 +93,7 @@ model Subcategory {
   category Category @relation(fields: [categoryId], references: [id])
   products Product[]
   @@index([categoryId])
+  @@unique([categoryId, name])
   @@map("subcategories")
 }
 
@@ -104,6 +106,7 @@ model City {
   deletedAt DateTime? @map("deleted_at")
 
   campuses Campus[]
+  @@unique([name])
   @@map("cities")
 }
 
@@ -120,6 +123,7 @@ model Campus {
   users User[]
   products Product[]
   @@index([cityId])
+  @@unique([cityId, name])
   @@map("campuses")
 }
 
@@ -139,5 +143,5 @@ enum ProductCondition {
   NEW
   LIKE_NEW
   GOOD
-  DIGITALS
+  DIGITAL
 }
