@@ -7,9 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "prisma:migrate": "pnpm dlx prisma migrate dev",
-    "prisma:gen": "pnpm dlx prisma generate",
-    "prisma:studio": "pnpm dlx prisma studio"
+    "prisma:migrate": "pnpm prisma migrate dev",
+    "prisma:gen": "pnpm prisma generate",
+    "prisma:studio": "pnpm prisma studio"
   },
   "keywords": [],
   "author": "",
