@@ -12,16 +12,136 @@ datasource db {
   provider = "postgresql"
 }
 
-model user {
+model User {
   id String @id @default(cuid(2))
-  email String @unique
-  name String?
+  googleId String @unique @db.VarChar(255) @map("google_id")
+  email String @unique @db.VarChar(255)
+  name String? @db.VarChar(255)
   role Role @default(USER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  avatarUrl String? @db.VarChar(2048) @map("avatar_url") 
+  isActive Boolean @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  isDeleted Boolean @default(false) @map("is_deleted")
+  deletedAt DateTime? @map("deleted_at")
+
+  products Product[]
+  favorites Favorite[]
+  campuses Campus[]
+  @@map("users")
+}
+
+model Product {
+  id String @id @default(cuid(2))
+  userId String @map("user_id")
+  slug String @unique @db.VarChar(300)
+  title String @db.VarChar(255)
+  description String? @db.Text
+  price Decimal? @db.Decimal(10,2)
+  condition ProductCondition?
+  status ProductStatus @default(AVAILABLE)
+  subcategoryId Int @map("subcategory_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  isDeleted Boolean @default(false) @map("is_deleted")
+  deletedAt DateTime? @map("deleted_at")
+
+  favorites Favorite[]
+  campuses Campus[]
+  user User @relation(fields: [userId], references: [id])
+  subcategory Subcategory @relation(fields: [subcategoryId], references: [id])
+  @@index([userId])
+  @@index([subcategoryId, status])
+  @@index([price])
+  @@map("products")
+}
+
+model Favorite {
+  userId String @map("user_id")
+  productId String @map("product_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  @@id([userId, productId])
+  @@index([productId])
+  @@map("favorites")
+}
+
+model Category {
+  id Int @id @default(autoincrement())
+  name String @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  isDeleted Boolean @default(false) @map("is_deleted")
+  deletedAt DateTime? @map("deleted_at")
+  
+  subcategories Subcategory[]
+  @@unique([name])
+  @@map("categories")
+}
+
+model Subcategory {
+  id Int @id @default(autoincrement())
+  name String @db.VarChar(255)
+  categoryId Int @map("category_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  isDeleted Boolean @default(false) @map("is_deleted")
+  deletedAt DateTime? @map("deleted_at")
+
+  category Category @relation(fields: [categoryId], references: [id])
+  products Product[]
+  @@index([categoryId])
+  @@unique([categoryId, name])
+  @@map("subcategories")
+}
+
+model City {
+  id Int @id @default(autoincrement())
+  name String @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  isDeleted Boolean @default(false) @map("is_deleted")
+  deletedAt DateTime? @map("deleted_at")
+
+  campuses Campus[]
+  @@unique([name])
+  @@map("cities")
+}
+
+model Campus {
+  id Int @id @default(autoincrement())
+  name String @db.VarChar(255)
+  cityId Int @map("city_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  isDeleted Boolean @default(false) @map("is_deleted")
+  deletedAt DateTime? @map("deleted_at")
+
+  city City @relation(fields: [cityId], references: [id])
+  users User[]
+  products Product[]
+  @@index([cityId])
+  @@unique([cityId, name])
+  @@map("campuses")
 }
 
 enum Role {
   USER
   ADMIN
+}
+
+enum ProductStatus {
+  DRAFT
+  AVAILABLE
+  RESERVED
+  SOLD
+}
+
+enum ProductCondition {
+  NEW
+  LIKE_NEW
+  GOOD
+  DIGITAL
 }
