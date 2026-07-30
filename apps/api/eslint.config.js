@@ -4,6 +4,9 @@ import globals from 'globals';
 export default [
   ...base,
   {
+    ignores: ['src/generated/**'],
+  },
+  {
     plugins: {
       n: pluginN,
     },
