@@ -1,8 +1,21 @@
 import { pinoHttp } from 'pino-http';
 import { logger } from '@/lib/logger.js';
 
+function pathOnly(url?: string) {
+  return url?.split('?')[0] ?? '';
+}
+
 export const httpLogger = pinoHttp({
   logger,
+
+  serializers: {
+    req(req) {
+      return { method: req.method, url: pathOnly(req.url) };
+    },
+    res(res) {
+      return { statusCode: res.statusCode };
+    },
+  },
 
   customLogLevel(req, res, error) {
     if (error || res.statusCode >= 500) return 'error';
@@ -11,9 +24,9 @@ export const httpLogger = pinoHttp({
     return 'info';
   },
   customSuccessMessage(req, res, responseTime) {
-    return `${req.method} ${req.url} ${res.statusCode} ${responseTime}ms`;
+    return `${req.method} ${pathOnly(req.url)} ${res.statusCode} ${responseTime}ms`;
   },
   customErrorMessage(req, res, error, responseTime?: number) {
-    return `${req.method} ${req.url} ${res.statusCode} ${responseTime}ms`;
+    return `${req.method} ${pathOnly(req.url)} ${res.statusCode} ${responseTime}ms`;
   },
 });
