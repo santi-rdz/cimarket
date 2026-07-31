@@ -5,8 +5,12 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "turbo run lint",
-    "lint:fix": "turbo run lint:fix"
+    "lint": "TURBO_NO_UPDATE_NOTIFIER=1 turbo run lint",
+    "lint:fix": "TURBO_NO_UPDATE_NOTIFIER=1 turbo run lint:fix",
+    "api:dev": "TURBO_NO_UPDATE_NOTIFIER=1 turbo run dev --filter=api",
+    "api:build": "TURBO_NO_UPDATE_NOTIFIER=1 turbo run build --filter=api",
+    "api:start": "TURBO_NO_UPDATE_NOTIFIER=1 turbo run start --filter=api",
+    "typecheck": "TURBO_NO_UPDATE_NOTIFIER=1 turbo run typecheck"
   },
   "keywords": [],
   "author": "",
@@ -19,7 +23,7 @@
     "eslint-config-prettier": "10.1.8",
     "globals": "17.7.0",
     "prettier": "3.9.5",
-    "turbo": "2.10.4",
+    "turbo": "2.10.7",
     "typescript": "~6.0.3",
     "typescript-eslint": "8.63.0"
   }
