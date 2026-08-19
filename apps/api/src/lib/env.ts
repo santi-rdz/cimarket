@@ -1,11 +1,7 @@
-import 'dotenv/config';
 import { z } from 'zod';
+import type { Bindings } from '../types/env';
 
-const envSchem = z.object({
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  PORT: z.coerce.number().int().positive().default(8000),
-  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug']).default('info'),
-
+const envSchema = z.object({
   DATABASE_URL: z.url(),
   GOOGLE_CLIENT_ID: z.string().min(1),
   GOOGLE_CLIENT_SECRET: z.string().min(1),
@@ -13,11 +9,16 @@ const envSchem = z.object({
   JWT_REFRESH_SECRET: z.string().min(32),
 });
 
-const parsed = envSchem.safeParse(process.env);
+export function validateEnv(env: Bindings) {
+  const parsed = envSchema.safeParse(env);
 
-if (!parsed.success) {
-  console.error('Invalid environment variables:\n', z.prettifyError(parsed.error));
-  throw new Error('Invalid environment variables', { cause: parsed.error });
+  if (!parsed.success) {
+    console.error('Invalid environment variables:\n', z.prettifyError(parsed.error));
+
+    throw new Error('Invalid environment variables', {
+      cause: parsed.error,
+    });
+  }
+
+  return parsed.data;
 }
-
-export const env = parsed.data;
