@@ -8,24 +8,12 @@
     "dev": {
       "name": "cimarket-api-dev",
       "secrets": {
-        "required": [
-          "DATABASE_URL",
-          "GOOGLE_CLIENT_ID",
-          "GOOGLE_CLIENT_SECRET",
-          "JWT_ACCESS_SECRET",
-          "JWT_REFRESH_SECRET",
-        ],
+        "required": ["DATABASE_URL"],
       },
     },
     "production": {
       "name": "cimarket-api",
-      "required": [
-        "DATABASE_URL",
-        "GOOGLE_CLIENT_ID",
-        "GOOGLE_CLIENT_SECRET",
-        "JWT_ACCESS_SECRET",
-        "JWT_REFRESH_SECRET",
-      ],
+      "required": ["DATABASE_URL"],
     },
   },
   // "compatibility_flags": [
