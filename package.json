@@ -8,8 +8,6 @@
     "lint": "TURBO_NO_UPDATE_NOTIFIER=1 turbo run lint",
     "lint:fix": "TURBO_NO_UPDATE_NOTIFIER=1 turbo run lint:fix",
     "api:dev": "TURBO_NO_UPDATE_NOTIFIER=1 turbo run dev --filter=api",
-    "api:build": "TURBO_NO_UPDATE_NOTIFIER=1 turbo run build --filter=api",
-    "api:start": "TURBO_NO_UPDATE_NOTIFIER=1 turbo run start --filter=api",
     "typecheck": "TURBO_NO_UPDATE_NOTIFIER=1 turbo run typecheck"
   },
   "keywords": [],
