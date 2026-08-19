@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint .",
-    "dev": "tsx watch --env-file-if-exists=.env src/server.ts",
+    "dev": "tsx watch src/server.ts",
     "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "start": "NODE_ENV=production node dist/server.js",
     "typecheck": "tsc --noEmit",
@@ -20,11 +20,11 @@
   "license": "ISC",
   "type": "module",
   "engines": {
-    "node": ">=20.6.0"
+    "node": ">=20.19.0"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "7.8.0",
-    "@prisma/client": "7.8.0",
+    "@prisma/adapter-neon": "7.9.1",
+    "@prisma/client": "7.9.1",
     "compression": "1.8.1",
     "cookie-parser": "1.4.7",
     "cors": "2.8.6",
@@ -44,7 +44,7 @@
     "dotenv": "17.4.2",
     "eslint-plugin-n": "18.2.2",
     "pino-pretty": "13.1.3",
-    "prisma": "7.8.0",
+    "prisma": "7.9.1",
     "tsc-alias": "1.9.1",
     "tsx": "4.23.1"
   }
