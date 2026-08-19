@@ -11,7 +11,7 @@
     "deploy:prod": "wrangler deploy --env production",
     "typecheck": "tsc --noEmit",
     "lint:fix": "eslint . --fix",
-    "prisma": "dotenv -e .dev.vars -- prisma",
+    "prisma": "dotenv -e .dev.vars.dev -- prisma",
     "prisma:migrate": "pnpm prisma migrate dev",
     "prisma:gen": "pnpm prisma generate",
     "prisma:studio": "pnpm prisma studio"
