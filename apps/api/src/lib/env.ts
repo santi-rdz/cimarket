@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { Bindings } from '../types/env';
+import { env } from 'cloudflare:workers';
 
 const envSchema = z.object({
   DATABASE_URL: z.url(),
@@ -9,16 +9,4 @@ const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string().min(32),
 });
 
-export function validateEnv(env: Bindings) {
-  const parsed = envSchema.safeParse(env);
-
-  if (!parsed.success) {
-    console.error('Invalid environment variables:\n', z.prettifyError(parsed.error));
-
-    throw new Error('Invalid environment variables', {
-      cause: parsed.error,
-    });
-  }
-
-  return parsed.data;
-}
+export const config = envSchema.parse(env);

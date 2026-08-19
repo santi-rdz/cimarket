@@ -4,5 +4,7 @@ node_modules
 
 /generated/prisma
 src/generated
-.dev.vars*
-.wrangler/
+# Cloudflare Workers local state
+**/.wrangler/
+# Environment secrets
+**/.dev.vars*

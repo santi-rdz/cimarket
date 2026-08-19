@@ -1,6 +1,5 @@
 import { Hono } from 'hono';
 import { createPrisma } from './lib/prisma';
-import type { Bindings } from './types/env';
 import { prismaMiddleware } from './middlewares/prisma';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
@@ -9,7 +8,7 @@ type Variables = {
   prisma: ReturnType<typeof createPrisma>;
 };
 
-const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
+const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
 app.use('*', logger());
 app.use('*', cors());

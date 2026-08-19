@@ -6,10 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint .",
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
-    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
-    "start": "NODE_ENV=production node dist/server.js",
+    "dev": "wrangler dev --env dev",
+    "deploy": "wrangler deploy --env dev",
+    "deploy:prod": "wrangler deploy --env production",
     "typecheck": "tsc --noEmit",
     "lint:fix": "eslint . --fix",
     "prisma": "dotenv -e .dev.vars -- prisma",
