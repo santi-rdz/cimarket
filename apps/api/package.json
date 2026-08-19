@@ -20,7 +20,7 @@
   "license": "ISC",
   "type": "module",
   "engines": {
-    "node": ">=20.19.0"
+    "node": ">=22"
   },
   "dependencies": {
     "@prisma/adapter-neon": "7.9.1",
