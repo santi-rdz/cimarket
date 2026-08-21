@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Monterrey",
+    "campuses": ["Tec de Monterrey CCM", "UANL FIME", "UDEM Campus Principal"]
+  },
+  {
+    "name": "Ciudad de México",
+    "campuses": ["Tec de Monterrey CCM CDMX", "UNAM Ciudad Universitaria", "IPN Zacatenco"]
+  },
+  {
+    "name": "Guadalajara",
+    "campuses": ["ITESO", "UDG CUCEI"]
+  }
+]

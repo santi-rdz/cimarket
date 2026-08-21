@@ -5,127 +5,504 @@
 
 generator client {
   provider = "prisma-client"
-  runtime = "cloudflare"
+  runtime  = "cloudflare"
   output   = "../src/generated/prisma"
+}
+
+// Node-targeted client for scripts that run outside the Workers runtime
+// (e.g. prisma/seed.ts). The main "client" generator above targets
+// Cloudflare Workers (wasm-compiler-edge) and fails when imported from
+// plain Node.
+generator nodeClient {
+  provider = "prisma-client"
+  runtime  = "nodejs"
+  output   = "../src/generated/prisma-node"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
+/// Soft-delete only (isDeleted/deletedAt) — every child relation uses onDelete: Restrict, so hard DELETE is intentionally unsupported; on delete, namespace email/googleId by id (e.g. `deleted+{id}@deleted.internal`) so re-registration isn't blocked.
 model User {
-  id String @id @default(cuid(2))
-  googleId String @unique @db.VarChar(255) @map("google_id")
-  email String @unique @db.VarChar(255)
-  name String? @db.VarChar(255)
-  role Role @default(USER)
-  avatarUrl String? @db.VarChar(2048) @map("avatar_url") 
-  isActive Boolean @default(true) @map("is_active")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  isDeleted Boolean @default(false) @map("is_deleted")
+  id        String    @id @default(cuid(2))
+  googleId  String    @unique @map("google_id") @db.VarChar(255)
+  email     String    @unique @db.VarChar(255)
+  name      String?   @db.VarChar(255)
+  role      Role      @default(USER)
+  avatarKey String?   @map("avatar_key") @db.VarChar(1024)
+  coverKey  String?   @map("cover_key") @db.VarChar(1024)
+  isActive  Boolean   @default(true) @map("is_active")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  isDeleted Boolean   @default(false) @map("is_deleted")
   deletedAt DateTime? @map("deleted_at")
 
-  products Product[]
-  favorites Favorite[]
-  campuses Campus[]
+  products            Product[]
+  favorites           Favorite[]
+  campuses            Campus[]
+  buyerConversations  Conversation[] @relation("BuyerConversations")
+  sellerConversations Conversation[] @relation("SellerConversations")
+  sentMessages        Message[]
+  notifications       Notification[]
+  pushTokens          PushToken[]
+  sellerTransactions  Transaction[]  @relation("SellerTransactions")
+  buyerTransactions   Transaction[]  @relation("BuyerTransactions")
+
+  reviewsGiven    Review[] @relation("ReviewsGiven")
+  reviewsReceived Review[] @relation("ReviewsReceived")
+
+  reportsCreated  Report[]        @relation("ReportAuthor")
+  reportsReceived Report[]        @relation("ReportTarget")
+  reportsResolved Report[]        @relation("ReportResolver")
+  adminAuditLogs  AdminAuditLog[] @relation("AdminAuditActor")
+
+  sessions Session[]
+
   @@map("users")
 }
 
 model Product {
-  id String @id @default(cuid(2))
-  userId String @map("user_id")
-  slug String @unique @db.VarChar(300)
-  title String @db.VarChar(255)
-  description String? @db.Text
-  price Decimal? @db.Decimal(10,2)
-  condition ProductCondition?
-  status ProductStatus @default(AVAILABLE)
-  subcategoryId Int @map("subcategory_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  isDeleted Boolean @default(false) @map("is_deleted")
-  deletedAt DateTime? @map("deleted_at")
+  id            String            @id @default(cuid(2))
+  userId        String            @map("user_id")
+  slug          String            @unique @db.VarChar(300)
+  title         String            @db.VarChar(255)
+  description   String?           @db.Text
+  price         Decimal?          @db.Decimal(10, 2)
+  condition     ProductCondition?
+  status        ProductStatus     @default(AVAILABLE)
+  subcategoryId Int               @map("subcategory_id")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+  isDeleted     Boolean           @default(false) @map("is_deleted")
+  deletedAt     DateTime?         @map("deleted_at")
 
-  favorites Favorite[]
-  campuses Campus[]
-  user User @relation(fields: [userId], references: [id])
-  subcategory Subcategory @relation(fields: [subcategoryId], references: [id])
+  favorites     Favorite[]
+  campuses      Campus[]
+  conversations Conversation[]
+  transactions  Transaction[]
+  reports       Report[]
+  images        ProductImage[]
+  user          User           @relation(fields: [userId], references: [id], onDelete: Restrict)
+  subcategory   Subcategory    @relation(fields: [subcategoryId], references: [id])
+
   @@index([userId])
   @@index([subcategoryId, status])
   @@index([price])
   @@map("products")
 }
 
-model Favorite {
-  userId String @map("user_id")
-  productId String @map("product_id")
+model ProductImage {
+  id         String @id @default(cuid(2))
+  productId  String @map("product_id")
+  storageKey String @map("storage_key") @db.VarChar(1024)
+  sortOrder  Int    @default(0) @map("sort_order")
+
   createdAt DateTime @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, sortOrder])
+  @@index([productId])
+  @@map("product_images")
+}
+
+model Favorite {
+  userId    String   @map("user_id")
+  productId String   @map("product_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Restrict)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
   @@id([userId, productId])
   @@index([productId])
   @@map("favorites")
 }
 
 model Category {
-  id Int @id @default(autoincrement())
-  name String @db.VarChar(255)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  isDeleted Boolean @default(false) @map("is_deleted")
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(255)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  isDeleted Boolean   @default(false) @map("is_deleted")
   deletedAt DateTime? @map("deleted_at")
-  
+
   subcategories Subcategory[]
+
   @@unique([name])
   @@map("categories")
 }
 
 model Subcategory {
-  id Int @id @default(autoincrement())
-  name String @db.VarChar(255)
-  categoryId Int @map("category_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  isDeleted Boolean @default(false) @map("is_deleted")
-  deletedAt DateTime? @map("deleted_at")
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(255)
+  categoryId Int       @map("category_id")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  isDeleted  Boolean   @default(false) @map("is_deleted")
+  deletedAt  DateTime? @map("deleted_at")
 
-  category Category @relation(fields: [categoryId], references: [id])
+  category Category  @relation(fields: [categoryId], references: [id])
   products Product[]
-  @@index([categoryId])
+
   @@unique([categoryId, name])
+  @@index([categoryId])
   @@map("subcategories")
 }
 
 model City {
-  id Int @id @default(autoincrement())
-  name String @db.VarChar(255)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  isDeleted Boolean @default(false) @map("is_deleted")
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(255)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  isDeleted Boolean   @default(false) @map("is_deleted")
   deletedAt DateTime? @map("deleted_at")
 
   campuses Campus[]
+
   @@unique([name])
   @@map("cities")
 }
 
 model Campus {
-  id Int @id @default(autoincrement())
-  name String @db.VarChar(255)
-  cityId Int @map("city_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  isDeleted Boolean @default(false) @map("is_deleted")
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(255)
+  cityId    Int       @map("city_id")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  isDeleted Boolean   @default(false) @map("is_deleted")
   deletedAt DateTime? @map("deleted_at")
 
-  city City @relation(fields: [cityId], references: [id])
-  users User[]
+  city     City      @relation(fields: [cityId], references: [id])
+  users    User[]
   products Product[]
-  @@index([cityId])
+
   @@unique([cityId, name])
+  @@index([cityId])
   @@map("campuses")
+}
+
+model Conversation {
+  id            String    @id @default(cuid(2))
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  lastMessageAt DateTime? @map("last_message_at")
+
+  buyerId   String @map("buyer_id")
+  sellerId  String @map("seller_id")
+  productId String @map("product_id")
+
+  buyerArchivedAt  DateTime? @map("buyer_archived_at")
+  sellerArchivedAt DateTime? @map("seller_archived_at")
+  buyerDeletedAt   DateTime? @map("buyer_deleted_at")
+  sellerDeletedAt  DateTime? @map("seller_deleted_at")
+
+  buyer       User         @relation("BuyerConversations", fields: [buyerId], references: [id], onDelete: Restrict)
+  seller      User         @relation("SellerConversations", fields: [sellerId], references: [id], onDelete: Restrict)
+  product     Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  transaction Transaction? @relation("ConversationToTransaction")
+  messages    Message[]
+
+  @@unique([buyerId, sellerId, productId])
+  @@index([buyerId, buyerDeletedAt])
+  @@index([sellerId, sellerDeletedAt])
+  @@index([productId])
+  @@index([lastMessageAt])
+  @@map("conversations")
+}
+
+model Message {
+  id        String    @id @default(cuid(2))
+  content   String    @db.Text
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  readAt    DateTime? @map("read_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  senderId       String  @map("sender_id")
+  conversationId String  @map("conversation_id")
+  replyToId      String? @map("reply_to_id")
+
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Restrict)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  replyTo     Message?            @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies     Message[]           @relation("MessageReplies")
+  reports     Report[]
+  attachments MessageAttachment[]
+
+  @@index([conversationId, createdAt])
+  @@index([conversationId, readAt])
+  @@index([conversationId, deletedAt])
+  @@index([senderId])
+  @@index([replyToId])
+  @@map("messages")
+}
+
+model MessageAttachment {
+  id        String @id @default(cuid(2))
+  messageId String @map("message_id")
+
+  type       MessageAttachmentType
+  storageKey String                @map("storage_key") @db.VarChar(1024)
+  mimeType   String                @map("mime_type") @db.VarChar(100)
+  size       Int
+
+  width    Int?
+  height   Int?
+  duration Int?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@map("message_attachments")
+}
+
+enum MessageAttachmentType {
+  IMAGE
+  VIDEO
+}
+
+model Transaction {
+  id             String            @id @default(cuid(2))
+  productId      String            @map("product_id")
+  sellerId       String            @map("seller_id")
+  buyerId        String            @map("buyer_id")
+  conversationId String?           @unique @map("conversation_id")
+  status         TransactionStatus @default(COMPLETED)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  product      Product       @relation(fields: [productId], references: [id], onDelete: Restrict)
+  seller       User          @relation("SellerTransactions", fields: [sellerId], references: [id], onDelete: Restrict)
+  buyer        User          @relation("BuyerTransactions", fields: [buyerId], references: [id], onDelete: Restrict)
+  conversation Conversation? @relation("ConversationToTransaction", fields: [conversationId], references: [id], onDelete: SetNull)
+
+  reviews Review[]
+
+  @@index([productId])
+  @@index([sellerId])
+  @@index([buyerId])
+  @@map("transactions")
+}
+
+enum TransactionStatus {
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+model Review {
+  id            String @id @default(cuid(2))
+  transactionId String @map("transaction_id")
+  fromId        String @map("from_id")
+  toId          String @map("to_id")
+
+  /// 1-5, enforced by a CHECK constraint added by hand in migration
+  /// 20260821064542_add_check_constraints (Prisma can't declare CHECK here).
+  /// Still validate in the review-creation handler for a clean error message.
+  rating    Int      @db.SmallInt
+  comment   String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  from        User        @relation("ReviewsGiven", fields: [fromId], references: [id], onDelete: Restrict)
+  to          User        @relation("ReviewsReceived", fields: [toId], references: [id], onDelete: Restrict)
+
+  @@unique([transactionId, fromId])
+  @@index([toId])
+  @@index([transactionId])
+  @@map("reviews")
+}
+
+model Notification {
+  id    String           @id @default(cuid(2))
+  type  NotificationType
+  title String           @db.VarChar(255)
+  body  String           @db.VarChar(500)
+
+  data      Json?
+  imageKey  String? @map("image_key") @db.VarChar(2048)
+  avatarKey String? @map("avatar_key") @db.VarChar(2048)
+
+  readAt    DateTime? @map("read_at")
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+model PushToken {
+  id        String       @id @default(cuid(2))
+  token     String       @unique @db.VarChar(1024)
+  platform  PushPlatform
+  userId    String       @map("user_id")
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@map("push_tokens")
+}
+
+enum PushPlatform {
+  IOS
+  ANDROID
+  WEB
+}
+
+enum NotificationType {
+  MESSAGE
+  MODERATION
+  PRODUCT_FAVORITED
+  TRANSACTION_CREATED
+  REVIEW_RECEIVED
+  REVIEW_REMINDER
+
+  ACCOUNT_SECURITY
+}
+
+model Report {
+  id         String           @id @default(cuid(2))
+  targetType ReportTargetType
+  reason     ReportReason
+  detail     String?          @db.Text
+
+  status         ReportStatus  @default(PENDING)
+  action         ReportAction?
+  resolutionNote String?       @map("resolution_note") @db.Text
+  resolvedAt     DateTime?     @map("resolved_at")
+  resolvedById   String?       @map("resolved_by_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  reporterId     String  @map("reporter_id")
+  reportedUserId String? @map("reported_user_id")
+  productId      String? @map("product_id")
+  messageId      String? @map("message_id")
+
+  reporter     User     @relation("ReportAuthor", fields: [reporterId], references: [id], onDelete: Restrict)
+  reportedUser User?    @relation("ReportTarget", fields: [reportedUserId], references: [id], onDelete: Restrict)
+  product      Product? @relation(fields: [productId], references: [id], onDelete: Restrict)
+  message      Message? @relation(fields: [messageId], references: [id], onDelete: Restrict)
+
+  resolvedBy User? @relation("ReportResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  @@index([reporterId])
+  @@index([reportedUserId])
+  @@index([productId])
+  @@index([messageId])
+  @@index([status, createdAt])
+  @@index([targetType, status, createdAt])
+  @@map("reports")
+}
+
+/// No automatic purge yet. Retention window and a scheduled anonymization/
+/// purge job (Cron Trigger) still need to be defined before this table
+/// accumulates unbounded PII-adjacent history.
+model AdminAuditLog {
+  id         String           @id @default(cuid(2))
+  actorId    String           @map("actor_id")
+  action     AdminAuditAction
+  entityType AdminAuditEntity @map("entity_type")
+  entityId   String           @map("entity_id")
+  /// Structured context only, e.g. { previousStatus, newStatus, reason }.
+  /// Never store raw message/report content, emails, or other free-text PII
+  /// here — reference the entity by id (entityId) instead.
+  payload    Json?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  /// Restrict is intentional: admin accounts are soft-deleted (see User),
+  /// never hard-deleted, so this FK is never expected to block a real delete.
+  actor User @relation("AdminAuditActor", fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([actorId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("admin_audit_log")
+}
+
+/// userAgent/ip are personal data (GDPR/CCPA). expiresAt/revokedAt mark a
+/// session as unusable but do not purge the row. No scheduled purge exists
+/// yet — needs a Cron Trigger to delete or scrub rows past
+/// expiresAt/revokedAt + a defined grace window.
+model Session {
+  id     String @id @default(cuid(2))
+  userId String @map("user_id")
+
+  refreshTokenHash String @unique @map("refresh_token_hash") @db.VarChar(255)
+
+  clientType SessionClientType @default(MOBILE) @map("client_type")
+  deviceId   String?           @map("device_id") @db.VarChar(255)
+  /// Personal data — see model-level retention note.
+  userAgent  String?           @map("user_agent") @db.VarChar(512)
+  /// Personal data — see model-level retention note.
+  ip         String?           @db.VarChar(45)
+
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+enum SessionClientType {
+  MOBILE
+  WEB
+}
+
+enum ReportTargetType {
+  USER
+  PRODUCT
+  MESSAGE
+}
+
+enum ReportReason {
+  SPAM
+  HARASSMENT
+  FRAUD
+  IMPERSONATION
+  THREAT
+  PROHIBITED_ITEM
+  COUNTERFEIT
+  MISLEADING_INFORMATION
+  INAPPROPRIATE_CONTENT
+  INAPPROPRIATE_BEHAVIOR
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  UNDER_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+enum ReportAction {
+  NONE
+  WARNING
+  USER_SUSPENDED
+  USER_BANNED
+  PRODUCT_REMOVED
+  MESSAGE_REMOVED
 }
 
 enum Role {
@@ -145,4 +522,33 @@ enum ProductCondition {
   LIKE_NEW
   GOOD
   DIGITAL
+}
+
+enum AdminAuditAction {
+  USER_SUSPENDED
+  USER_BANNED
+  USER_UNBANNED
+  USER_WARNED
+
+  PRODUCT_REMOVED
+  PRODUCT_RESTORED
+
+  MESSAGE_REMOVED
+
+  REPORT_REVIEWED
+  REPORT_RESOLVED
+  REPORT_DISMISSED
+
+  TRANSACTION_REVIEWED
+
+  ROLE_CHANGED
+}
+
+enum AdminAuditEntity {
+  USER
+  PRODUCT
+  MESSAGE
+  REPORT
+  TRANSACTION
+  REVIEW
 }

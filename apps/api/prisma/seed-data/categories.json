@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Libros y apuntes",
+    "subcategories": ["Libros de texto", "Apuntes y resúmenes", "Novelas"]
+  },
+  {
+    "name": "Electrónica",
+    "subcategories": ["Laptops", "Celulares", "Audífonos y bocinas", "Accesorios"]
+  },
+  {
+    "name": "Muebles",
+    "subcategories": ["Escritorios y sillas", "Repisas y organizadores", "Decoración"]
+  },
+  {
+    "name": "Ropa y accesorios",
+    "subcategories": ["Playeras y sudaderas", "Zapatos", "Mochilas"]
+  },
+  {
+    "name": "Servicios",
+    "subcategories": ["Clases particulares", "Diseño gráfico", "Impresiones"]
+  }
+]
