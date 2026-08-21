@@ -32,8 +32,8 @@ jobs:
       - name: Apply production migrations
         run: pnpm --dir apps/api exec prisma migrate deploy
 
-      # Add the Worker deployment here once Hono + Wrangler are configured.
-      # - name: Deploy Worker
-      #   run: pnpm --dir apps/api exec wrangler deploy --env production
-      #   env:
-      #     CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      - name: Deploy Worker
+        run: pnpm --dir apps/api exec wrangler deploy --env production
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID}}

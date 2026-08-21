@@ -13,7 +13,9 @@
     },
     "production": {
       "name": "cimarket-api",
-      "required": ["DATABASE_URL"],
+      "secrets": {
+        "required": ["DATABASE_URL"],
+      },
     },
   },
   // "compatibility_flags": [
