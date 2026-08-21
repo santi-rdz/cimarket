@@ -17,6 +17,7 @@ export default [
       ...pluginN.configs['flat/recommended'].rules,
       'n/no-unpublished-import': 'off',
       'n/no-extraneous-import': 'off',
+      'n/no-missing-import': 'off',
     },
   },
 ];
