@@ -1,35 +1,37 @@
-import { Hono } from 'hono';
-import { createPrisma } from './lib/prisma';
-import { prismaMiddleware } from './middlewares/prisma';
-import { cors } from 'hono/cors';
-import { logger } from 'hono/logger';
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+import { logger } from "hono/logger";
+import { prismaMiddleware } from "./middlewares/prisma";
+import { errorHandler } from "./middlewares/errorHandler";
+import userRouter from "./routes/userRoutes";
+import { createPrisma } from "./lib/prisma";
+import { runRetentionJob } from "./jobs/retention";
+import type { AppEnv } from "@/types/hono";
 
-type Variables = {
-  prisma: ReturnType<typeof createPrisma>;
-};
+const app = new Hono<AppEnv>()
+  .use("*", logger())
+  .use("*", cors())
+  .use("/api/*", prismaMiddleware)
+  .route("/api/v1/users", userRouter)
+  .get("/health", (c) => {
+    return c.json({
+      status: "ok",
+      service: "cimarket-api",
+    });
+  })
+  .onError(errorHandler);
 
-const app = new Hono<{ Bindings: Env; Variables: Variables }>();
+export type AppType = typeof app;
 
-app.use('*', logger());
-app.use('*', cors());
-app.use('/api/*', prismaMiddleware);
-
-app.get('/', (c) => {
-  return c.json({
-    message: 'CIMarket API',
-  });
-});
-app.get('/health', (c) => {
-  return c.json({
-    status: 'ok',
-    service: 'cimarket-api',
-  });
-});
-app.get('/api/users', async (c) => {
-  const prisma = c.var.prisma;
-
-  const users = await prisma.user.findMany();
-  return c.json(users);
-});
-
-export default app;
+export default {
+  fetch: app.fetch,
+  async scheduled(_controller, env, ctx) {
+    if (!env.DATABASE_URL) throw new Error("DATABASE_URL is not set");
+    const prisma = createPrisma(env.DATABASE_URL);
+    ctx.waitUntil(
+      runRetentionJob(prisma)
+        .catch((err: unknown) => console.error("Retention job failed", err))
+        .finally(() => prisma.$disconnect()),
+    );
+  },
+} satisfies ExportedHandler<Env>;

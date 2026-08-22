@@ -1,10 +1,10 @@
-import base from '@cm/config/eslint';
-import pluginN from 'eslint-plugin-n';
-import globals from 'globals';
+import base from "@cm/config/eslint";
+import pluginN from "eslint-plugin-n";
+import globals from "globals";
 export default [
   ...base,
   {
-    ignores: ['src/generated/**'],
+    ignores: ["src/generated/**", ".wrangler/**"],
   },
   {
     plugins: {
@@ -14,10 +14,10 @@ export default [
       globals: globals.node,
     },
     rules: {
-      ...pluginN.configs['flat/recommended'].rules,
-      'n/no-unpublished-import': 'off',
-      'n/no-extraneous-import': 'off',
-      'n/no-missing-import': 'off',
+      ...pluginN.configs["flat/recommended"].rules,
+      "n/no-unpublished-import": "off",
+      "n/no-extraneous-import": "off",
+      "n/no-missing-import": "off",
     },
   },
 ];

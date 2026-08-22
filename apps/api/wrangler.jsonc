@@ -16,6 +16,9 @@
       "secrets": {
         "required": ["DATABASE_URL"],
       },
+      "triggers": {
+        "crons": ["0 3 * * *"],
+      },
     },
   },
   // "compatibility_flags": [
