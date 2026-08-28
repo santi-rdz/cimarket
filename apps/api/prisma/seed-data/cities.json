@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Ensenada",
+    "campuses": ["El Sauzal", "San Quintín", "Valle de Guadalupe", "Valle Dorado"]
+  },
+  {
+    "name": "Mexicali",
+    "campuses": ["Ciudad Morelos Cuervos", "Km 43", "San Felipe", "Zona Urbana"]
+  },
+  {
+    "name": "Rosarito",
+    "campuses": ["CER"]
+  },
+  {
+    "name": "Tecate",
+    "campuses": ["Tecate"]
+  },
+  {
+    "name": "Tijuana",
+    "campuses": ["Otay", "Valle de las Palmas"]
+  }
+]

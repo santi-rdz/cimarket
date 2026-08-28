@@ -4,7 +4,9 @@
     "types": ["node", "./worker-configuration.d.ts"],
     "noEmit": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@services/*": ["./src/services/*"],
+      "@routes/*": ["./src/routes/*"]
     }
   },
   "include": ["src", "*.config.ts"]

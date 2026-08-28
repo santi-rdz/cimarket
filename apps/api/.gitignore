@@ -8,3 +8,4 @@ src/generated
 **/.wrangler/
 # Environment secrets
 **/.dev.vars*
+!**/.dev.vars.example

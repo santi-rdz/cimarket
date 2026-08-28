@@ -1,0 +1,13 @@
+# Copy this file to .dev.vars and fill in real values. Never commit .dev.vars.
+
+# Postgres connection string (Neon). See https://neon.tech
+DATABASE_URL=postgresql://user:password@host/dbname?sslmode=require
+
+# Google OAuth client credentials (console.cloud.google.com)
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
+# Random secrets used to sign JWTs — at least 32 characters each.
+# Generate with: openssl rand -hex 32
+JWT_ACCESS_SECRET=
+JWT_REFRESH_SECRET=
