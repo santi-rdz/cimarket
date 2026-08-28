@@ -24,8 +24,7 @@ export const userSchema = z.object({
 });
 
 export const userQuerySchema = z.object({
-  page: baseQuery.shape.page,
-  limit: baseQuery.shape.limit,
+  ...baseQuery.shape,
   sort: sortQueryParam(SORTABLE_USER_FIELDS, { field: "createdAt", direction: "desc" }),
   fields: fieldsQueryParam(SELECTABLE_USER_FIELDS),
   role: z.enum(ROLES).optional(),

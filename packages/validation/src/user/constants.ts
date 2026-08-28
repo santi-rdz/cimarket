@@ -8,3 +8,5 @@ export const SELECTABLE_USER_FIELDS = [
   "coverKey",
   "isActive",
 ] as const;
+
+export const SEARCHABLE_USER_FIELDS = ["name", "email"] as const;

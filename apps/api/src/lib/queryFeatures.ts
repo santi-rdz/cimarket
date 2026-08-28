@@ -24,3 +24,22 @@ export function buildFindManyArgs<SortField extends string, SelectField extends 
     }),
   };
 }
+
+type SearchWhere<Field extends string> = {
+  OR?: Partial<Record<Field, { contains: string; mode: "insensitive" }>>[];
+};
+
+export function buildSearchWhere<Field extends string>(
+  search: string | undefined,
+  fields: readonly Field[],
+): SearchWhere<Field> {
+  if (!search) return {};
+  return {
+    OR: fields.map(
+      (field) =>
+        ({ [field]: { contains: search, mode: "insensitive" } }) as Partial<
+          Record<Field, { contains: string; mode: "insensitive" }>
+        >,
+    ),
+  };
+}

@@ -59,8 +59,9 @@ export function fieldsQueryParam<T extends readonly [string, ...string[]]>(allow
 
 export const baseQuery = z.object({
   sort: str().optional(),
+  search: str().optional(),
   page: int().min(1).default(1),
-  limit: int().max(100).default(10),
+  limit: int().min(1).max(100).default(10),
 });
 
 export const paramsSchema = z.object({ id: cuidField });

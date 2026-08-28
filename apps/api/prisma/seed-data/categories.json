@@ -1,22 +1,46 @@
 [
   {
-    "name": "Libros y apuntes",
-    "subcategories": ["Libros de texto", "Apuntes y resúmenes", "Novelas"]
+    "name": "Universidad",
+    "subcategories": [
+      "Libros y apuntes",
+      "Material escolar",
+      "Calculadoras",
+      "Laboratorio",
+      "Uniformes"
+    ]
   },
   {
-    "name": "Electrónica",
-    "subcategories": ["Laptops", "Celulares", "Audífonos y bocinas", "Accesorios"]
-  },
-  {
-    "name": "Muebles",
-    "subcategories": ["Escritorios y sillas", "Repisas y organizadores", "Decoración"]
+    "name": "Tecnología",
+    "subcategories": ["Computadoras", "Celulares", "Audio", "Accesorios electrónicos"]
   },
   {
     "name": "Ropa y accesorios",
-    "subcategories": ["Playeras y sudaderas", "Zapatos", "Mochilas"]
+    "subcategories": ["Ropa", "Calzado", "Bolsos y mochilas", "Joyas y accesorios"]
   },
   {
-    "name": "Servicios",
-    "subcategories": ["Clases particulares", "Diseño gráfico", "Impresiones"]
+    "name": "Casa",
+    "subcategories": ["Muebles", "Electrodomésticos", "Herramientas", "Decoración y hogar"]
+  },
+  {
+    "name": "Entretenimiento",
+    "subcategories": [
+      "Videojuegos",
+      "Libros, películas y música",
+      "Juegos de mesa",
+      "Coleccionables"
+    ]
+  },
+  {
+    "name": "Deportes y hobbies",
+    "subcategories": [
+      "Deportes",
+      "Bicicletas y patinetas",
+      "Instrumentos musicales",
+      "Arte y manualidades"
+    ]
+  },
+  {
+    "name": "Cuidado personal",
+    "subcategories": ["Salud y belleza", "Mascotas", "Bebés y niños"]
   }
 ]

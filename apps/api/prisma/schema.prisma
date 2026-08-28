@@ -123,6 +123,7 @@ model Favorite {
 model Category {
   id        Int       @id @default(autoincrement())
   name      String    @db.VarChar(255)
+  sortOrder Int       @default(0) @map("sort_order")
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
   isDeleted Boolean   @default(false) @map("is_deleted")
@@ -375,7 +376,7 @@ enum NotificationType {
 
 model Report {
   id         String           @id @default(cuid(2))
-  targetType ReportTargetType
+  targetType ReportTargetType @map("target_type")
   reason     ReportReason
   detail     String?          @db.Text
 

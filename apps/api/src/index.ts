@@ -7,18 +7,18 @@ import userRouter from "./routes/userRoutes";
 import { createPrisma } from "./lib/prisma";
 import { runRetentionJob } from "./jobs/retention";
 import type { AppEnv } from "@/types/hono";
+import { healthHandler } from "./lib/health";
+import { notFoundHandler } from "./lib/notFound";
+import { secureHeaders } from "hono/secure-headers";
 
 const app = new Hono<AppEnv>()
   .use("*", logger())
-  .use("*", cors())
+  .use("*", cors({ origin: ["http://localhost:3000", "https://app.cimarket.app"] }))
+  .use("*", secureHeaders({ crossOriginResourcePolicy: "same-site" }))
   .use("/api/*", prismaMiddleware)
   .route("/api/v1/users", userRouter)
-  .get("/health", (c) => {
-    return c.json({
-      status: "ok",
-      service: "cimarket-api",
-    });
-  })
+  .get("/health", healthHandler)
+  .notFound(notFoundHandler)
   .onError(errorHandler);
 
 export type AppType = typeof app;

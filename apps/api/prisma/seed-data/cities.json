@@ -1,14 +1,22 @@
 [
   {
-    "name": "Monterrey",
-    "campuses": ["Tec de Monterrey CCM", "UANL FIME", "UDEM Campus Principal"]
+    "name": "Ensenada",
+    "campuses": ["El Sauzal", "San Quintín", "Valle de Guadalupe", "Valle Dorado"]
   },
   {
-    "name": "Ciudad de México",
-    "campuses": ["Tec de Monterrey CCM CDMX", "UNAM Ciudad Universitaria", "IPN Zacatenco"]
+    "name": "Mexicali",
+    "campuses": ["Ciudad Morelos Cuervos", "Km 43", "San Felipe", "Zona Urbana"]
   },
   {
-    "name": "Guadalajara",
-    "campuses": ["ITESO", "UDG CUCEI"]
+    "name": "Rosarito",
+    "campuses": ["CER"]
+  },
+  {
+    "name": "Tecate",
+    "campuses": ["Tecate"]
+  },
+  {
+    "name": "Tijuana",
+    "campuses": ["Otay", "Valle de las Palmas"]
   }
 ]

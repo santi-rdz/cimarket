@@ -1,8 +1,8 @@
-import { faker } from '@faker-js/faker';
-import { createInterface } from 'node:readline';
-import slugify from 'slugify';
-import { PrismaNeon } from '@prisma/adapter-neon';
-import { Prisma } from '../src/generated/prisma-node/client.js';
+import { faker } from "@faker-js/faker";
+import { createInterface } from "node:readline";
+import slugify from "slugify";
+import { PrismaNeon } from "@prisma/adapter-neon";
+import { Prisma } from "../src/generated/prisma-node/client.js";
 // The main app generator (schema.prisma "client") targets Cloudflare Workers
 // (wasm-compiler-edge) and fails when imported from plain Node — this script
 // uses the "nodeClient" generator output instead, built for Node scripts.
@@ -11,9 +11,9 @@ import {
   type ProductCondition,
   type ProductStatus,
   type PushPlatform,
-} from '../src/generated/prisma-node/client.js';
-import categoriesData from './seed-data/categories.json' with { type: 'json' };
-import citiesData from './seed-data/cities.json' with { type: 'json' };
+} from "../src/generated/prisma-node/client.js";
+import categoriesData from "./seed-data/categories.json" with { type: "json" };
+import citiesData from "./seed-data/cities.json" with { type: "json" };
 
 const USERS_COUNT = 25;
 const PRODUCTS_COUNT = 60;
@@ -21,49 +21,60 @@ const CONVERSATIONS_COUNT = 15;
 const FAVORITES_COUNT = 40;
 
 const databaseUrl = process.env.DATABASE_URL;
-if (!databaseUrl) throw new Error('DATABASE_URL is not set');
+if (!databaseUrl) throw new Error("DATABASE_URL is not set");
 
 // Guardrail: this script deletes real rows. Default to requiring confirmation
 // for anything that isn't explicitly localhost — allowlisting remote hostname
 // substrings (as opposed to this denylist of local ones) would silently skip
 // the prompt for any provider we didn't think to list.
-const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '::1']);
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
 
 async function confirm(question: string) {
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   const answer = await new Promise<string>((resolve) => rl.question(question, resolve));
   rl.close();
-  return answer.trim().toLowerCase() === 'yes';
+  return answer.trim().toLowerCase() === "yes";
 }
 
 const dbHost = new URL(databaseUrl).hostname;
-if (!LOCAL_HOSTS.has(dbHost) && !process.env.SEED_ALLOW_REMOTE) {
+const allowRemote = process.env.SEED_ALLOW_REMOTE === "true";
+if (!LOCAL_HOSTS.has(dbHost) && !allowRemote) {
   const confirmed = await confirm(
     `This looks like a remote database (${dbHost}). Type "yes" to continue: `,
   );
-  if (!confirmed) throw new Error('Aborted: remote database not confirmed.');
+  if (!confirmed) throw new Error("Aborted: remote database not confirmed.");
 }
 
 const adapter = new PrismaNeon({ connectionString: databaseUrl });
 const prisma = new PrismaClient({ adapter });
 
-const PRODUCT_CONDITIONS: ProductCondition[] = ['NEW', 'LIKE_NEW', 'GOOD', 'DIGITAL'];
-const PUSH_PLATFORMS: PushPlatform[] = ['IOS', 'ANDROID', 'WEB'];
+const PRODUCT_CONDITIONS: ProductCondition[] = ["NEW", "LIKE_NEW", "GOOD", "DIGITAL"];
+const PUSH_PLATFORMS: PushPlatform[] = ["IOS", "ANDROID", "WEB"];
 
 function toProductSlug(title: string) {
   return `${slugify(title, { lower: true, strict: true })}-${faker.string.alphanumeric(6)}`;
 }
 
 async function importData() {
-  console.log('Seeding catalog (categories, subcategories, cities, campuses)...');
+  console.log("Seeding catalog (categories, subcategories, cities, campuses)...");
 
   const subcategoryIds: number[] = [];
-  for (const category of categoriesData) {
-    const createdCategory = await prisma.category.create({ data: { name: category.name } });
+  for (const [index, category] of categoriesData.entries()) {
+    const createdCategory = await prisma.category.create({
+      data: {
+        name: category.name,
+        sortOrder: index,
+      },
+    });
+
     for (const subcategoryName of category.subcategories) {
       const createdSubcategory = await prisma.subcategory.create({
-        data: { name: subcategoryName, categoryId: createdCategory.id },
+        data: {
+          name: subcategoryName,
+          categoryId: createdCategory.id,
+        },
       });
+
       subcategoryIds.push(createdSubcategory.id);
     }
   }
@@ -86,9 +97,9 @@ async function importData() {
     const user = await prisma.user.create({
       data: {
         googleId: faker.string.numeric(21),
-        email: faker.internet.email({ firstName: name.split(' ')[0] }).toLowerCase(),
+        email: faker.internet.email({ firstName: name.split(" ")[0] }).toLowerCase(),
         name,
-        role: i === 0 ? 'ADMIN' : 'USER',
+        role: i === 0 ? "ADMIN" : "USER",
         avatarKey: faker.image.personPortrait({ size: 256 }),
         campuses: {
           connect: faker.helpers.arrayElements(campusIds, { min: 1, max: 2 }).map((id) => ({ id })),
@@ -112,7 +123,7 @@ async function importData() {
         description: faker.commerce.productDescription(),
         price: faker.commerce.price({ min: 50, max: 5000 }),
         condition: faker.helpers.arrayElement(PRODUCT_CONDITIONS),
-        status: 'AVAILABLE' as ProductStatus,
+        status: "AVAILABLE" as ProductStatus,
         subcategoryId: faker.helpers.arrayElement(subcategoryIds),
         campuses: { connect: [{ id: faker.helpers.arrayElement(campusIds) }] },
         images: {
@@ -163,7 +174,7 @@ async function importData() {
       .catch((error: unknown) => {
         // P2002: unique constraint violation — this buyer/seller/product combo
         // already exists, skip it. Anything else is a real bug, surface it.
-        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
           return null;
         }
         throw error;
@@ -177,10 +188,10 @@ async function importData() {
           sellerId,
           buyerId,
           conversationId: conversation.id,
-          status: 'COMPLETED',
+          status: "COMPLETED",
         },
       });
-      await prisma.product.update({ where: { id: productId }, data: { status: 'SOLD' } });
+      await prisma.product.update({ where: { id: productId }, data: { status: "SOLD" } });
       await prisma.review.createMany({
         data: [
           {
@@ -202,7 +213,7 @@ async function importData() {
     }
   }
 
-  console.log('Seeding push tokens and notifications...');
+  console.log("Seeding push tokens and notifications...");
   for (const userId of userIds) {
     await prisma.pushToken.create({
       data: {
@@ -214,21 +225,21 @@ async function importData() {
     await prisma.notification.create({
       data: {
         userId,
-        type: 'PRODUCT_FAVORITED',
-        title: 'Alguien guardó tu producto',
+        type: "PRODUCT_FAVORITED",
+        title: "Alguien guardó tu producto",
         body: faker.lorem.sentence(),
       },
     });
   }
 
-  console.log('Done. Seeded catalog + fake users/products/conversations/transactions/reviews.');
+  console.log("Done. Seeded catalog + fake users/products/conversations/transactions/reviews.");
 }
 
 // Auth data (Session, AdminAuditLog) is intentionally NOT seeded here: those
 // rows are only meaningful when tied to a real login/refresh-token flow, so
 // fake ones would be misleading rather than useful for local testing.
 async function deleteData() {
-  console.log('Deleting seeded data...');
+  console.log("Deleting seeded data...");
   await prisma.$transaction([
     prisma.review.deleteMany(),
     prisma.transaction.deleteMany(),
@@ -246,17 +257,17 @@ async function deleteData() {
     prisma.city.deleteMany(),
     prisma.user.deleteMany(),
   ]);
-  console.log('Data successfully deleted!');
+  console.log("Data successfully deleted!");
 }
 
 const mode = process.argv[2];
 
-if (mode === '--import') {
+if (mode === "--import") {
   await importData();
-} else if (mode === '--delete') {
+} else if (mode === "--delete") {
   await deleteData();
 } else {
-  throw new Error('Usage: tsx prisma/seed.ts --import | --delete');
+  throw new Error("Usage: tsx prisma/seed.ts --import | --delete");
 }
 
 await prisma.$disconnect();

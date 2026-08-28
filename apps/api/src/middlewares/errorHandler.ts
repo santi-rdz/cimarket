@@ -3,31 +3,8 @@ import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { HTTPException } from "hono/http-exception";
 import { Prisma } from "../generated/prisma/client.js";
 import { AppError, ConflictError, NotFoundError } from "@/lib/AppError";
-
-const MODEL_NAMES_ES: Record<string, string> = {
-  User: "Usuario",
-  Product: "Producto",
-  ProductImage: "Imagen de producto",
-  Favorite: "Favorito",
-  Category: "Categoría",
-  Subcategory: "Subcategoría",
-  City: "Ciudad",
-  Campus: "Campus",
-  Conversation: "Conversación",
-  Message: "Mensaje",
-  MessageAttachment: "Archivo adjunto",
-  Transaction: "Transacción",
-  Review: "Reseña",
-  Notification: "Notificación",
-  PushToken: "Token de notificaciones",
-  Report: "Reporte",
-  AdminAuditLog: "Registro de auditoría",
-  Session: "Sesión",
-};
-
-function toSpanishModelName(modelName: string): string {
-  return MODEL_NAMES_ES[modelName] ?? "Recurso";
-}
+import { getConstraintFields } from "@/lib/prismaErrors";
+import { toSpanishModelName } from "@/constants/modelNames";
 
 // Prisma error codes: https://www.prisma.io/docs/orm/reference/error-reference
 function normalizeError(err: unknown): AppError {
@@ -41,7 +18,8 @@ function normalizeError(err: unknown): AppError {
     switch (err.code) {
       case "P2002": {
         const target = err.meta?.target;
-        const field = Array.isArray(target) ? target.join(", ") : String(target ?? "campo");
+        const fields = Array.isArray(target) ? target : getConstraintFields(err.meta);
+        const field = fields ? fields.join(", ") : "campo";
         return new ConflictError(field);
       }
       case "P2025": {
